@@ -2136,6 +2136,9 @@
     <file>
       <name>$PROJ_DIR$\HARDWARE\LedDriver\led_driver.c</name>
     </file>
+    <file>
+      <name>$PROJ_DIR$\HARDWARE\Vcc1v8\vcc_1v8.c</name>
+    </file>
   </group>
   <group>
     <name>USER</name>

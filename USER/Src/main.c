@@ -39,6 +39,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "led_driver.h"
+#include "vcc_1v8.h"
     
 /** @addtogroup STM32L0xx_HAL_Examples
   * @{
@@ -52,7 +53,6 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-extern DAC_HandleTypeDef    DacHandle;
 uint32_t DAC_Value = 0xFF;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -79,24 +79,16 @@ int main(void)
      */
   HAL_Init();
 
-	/* Configure the system clock to 2 MHz */
+  /* Configure the system clock to 2 MHz */
   SystemClock_Config();
 	
+  VCC_1v8_Init();
+  LED_Driver_Init();
+  
   /* Configure LED2 */
   //BSP_LED_Init(LED2);
-
-  if (HAL_DAC_SetValue(&DacHandle, DACx_CHANNEL, DAC_ALIGN_8B_R, DAC_Value) != HAL_OK)
-  {
-    /* Setting value Error */
-    Error_Handler();
-  }
-
-  /*##-4- Enable DAC Channel1 ################################################*/
-  if (HAL_DAC_Start(&DacHandle, DACx_CHANNEL) != HAL_OK)
-  {
-    /* Start Error */
-    Error_Handler();
-  }
+  
+  LED_Driver_SetValue(DAC_Value);
 
   /* Infinite loop */
   while (1)

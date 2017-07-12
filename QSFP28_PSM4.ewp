@@ -302,6 +302,7 @@
           <state>$PROJ_DIR$\USER\Inc</state>
           <state>$PROJ_DIR$\FWlib\Inc</state>
           <state>$PROJ_DIR$\HARDWARE\LedDriver</state>
+          <state>$PROJ_DIR$\HARDWARE\Vcc1v8</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -1927,6 +1928,9 @@
     <name>HARDWARE</name>
     <file>
       <name>$PROJ_DIR$\HARDWARE\LedDriver\led_driver.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\HARDWARE\Vcc1v8\vcc_1v8.c</name>
     </file>
   </group>
   <group>
