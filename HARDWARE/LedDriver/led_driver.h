@@ -21,7 +21,16 @@
 /* Definition for DACx's Channel */
 #define DACx_CHANNEL                    DAC_CHANNEL_1
      
+     
+#define Driver_EN1_PIN                  GPIO_PIN_9
+#define Driver_EN2_PIN                  GPIO_PIN_10
+#define Driver_EN_GPIO_PORT             GPIOC
+
+#define Driver_EN_GPIO_CLK_ENABLE()     __HAL_RCC_GPIOC_CLK_ENABLE()      
+     
 void LED_Driver_Init(void);
+void LED_Driver_SetValue(uint32_t value);
+void LED_Driver_Disable(void);
 static void Error_Handler(void);
 
 #endif
