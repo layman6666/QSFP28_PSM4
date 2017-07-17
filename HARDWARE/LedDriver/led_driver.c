@@ -62,6 +62,8 @@ void LED_Driver_SetValue(uint32_t value)
     /* Setting value Error */
     Error_Handler();
   }
+  
+
 }
 
 void LED_Driver_Disable()

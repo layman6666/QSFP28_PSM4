@@ -53,12 +53,13 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-uint32_t DAC_Value = 0xFF;
+
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void Error_Handler(void);
 
+uint8_t DAC_Value = 0x55;
 /* Private functions ---------------------------------------------------------*/
 
 /**
@@ -79,14 +80,14 @@ int main(void)
      */
   HAL_Init();
 
-  /* Configure the system clock to 2 MHz */
+	/* Configure the system clock to 2 MHz */
   SystemClock_Config();
 	
-  VCC_1v8_Init();
-  LED_Driver_Init();
-  
   /* Configure LED2 */
   //BSP_LED_Init(LED2);
+  
+  VCC_1v8_Init();
+  LED_Driver_Init();
   
   LED_Driver_SetValue(DAC_Value);
 

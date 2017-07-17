@@ -45,7 +45,7 @@
         </option>
         <option>
           <name>MemFile</name>
-          <state>$TOOLKIT_DIR$\CONFIG\debugger\ST\STM32L072RZ.ddf</state>
+          <state>$TOOLKIT_DIR$\CONFIG\debugger\ST\STM32L073RZ.ddf</state>
         </option>
         <option>
           <name>RunToEnable</name>
@@ -97,7 +97,7 @@
         </option>
         <option>
           <name>UseFlashLoader</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CLowLevel</name>

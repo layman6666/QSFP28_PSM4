@@ -44,7 +44,9 @@
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
-
+/* User can use this section to tailor DACx instance used and associated
+   resources */
+/* Definition for DACx clock resources */
 
 
 /* Exported macro ------------------------------------------------------------*/

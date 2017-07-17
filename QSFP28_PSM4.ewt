@@ -2101,7 +2101,7 @@
   <group>
     <name>CMSIS</name>
     <file>
-      <name>$PROJ_DIR$\CMSIS\startup\startup_stm32l072xx.s</name>
+      <name>$PROJ_DIR$\CMSIS\startup\startup_stm32l073xx.s</name>
     </file>
     <file>
       <name>$PROJ_DIR$\CMSIS\system_stm32l0xx.c</name>
@@ -2135,6 +2135,9 @@
     <name>HARDWARE</name>
     <file>
       <name>$PROJ_DIR$\HARDWARE\LedDriver\led_driver.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\HARDWARE\SPI\spi.c</name>
     </file>
     <file>
       <name>$PROJ_DIR$\HARDWARE\Vcc1v8\vcc_1v8.c</name>
