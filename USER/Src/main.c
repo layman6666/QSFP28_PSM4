@@ -40,7 +40,8 @@
 #include "main.h"
 #include "led_driver.h"
 #include "vcc_1v8.h"
-    
+#include "spi.h"
+
 /** @addtogroup STM32L0xx_HAL_Examples
   * @{
   */
@@ -59,7 +60,7 @@
 void SystemClock_Config(void);
 static void Error_Handler(void);
 
-uint8_t DAC_Value = 0x55;
+uint8_t DAC_Value = 0x23;
 /* Private functions ---------------------------------------------------------*/
 
 /**
@@ -90,7 +91,10 @@ int main(void)
   LED_Driver_Init();
   
   LED_Driver_SetValue(DAC_Value);
-
+  
+  SPI_Init();
+  uint8_t temp = SPI_ReadWrite_Byte(0x12);
+  
   /* Infinite loop */
   while (1)
   {
