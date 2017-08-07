@@ -31,6 +31,5 @@
 void LED_Driver_Init(void);
 void LED_Driver_SetValue(uint32_t value);
 void LED_Driver_Disable(void);
-static void Error_Handler(void);
 
 #endif

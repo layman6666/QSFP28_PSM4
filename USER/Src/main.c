@@ -38,10 +38,13 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stm32l0xx_hal.h"
+#include "i2c.h"
 #include "led_driver.h"
 #include "vcc_1v8.h"
 #include "spi.h"
 
+    
 /** @addtogroup STM32L0xx_HAL_Examples
   * @{
   */
@@ -54,15 +57,24 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+I2C_HandleTypeDef I2cHandle;
+IWDG_HandleTypeDef hiwdg;
 
+/* Buffer used for transmission */
+uint8_t aTxBuffer[RXBUFFERSIZE];
+
+/* Buffer used for reception */
+uint8_t aRxBuffer[RXBUFFERSIZE];
+__IO uint16_t regAddress = 0;
+uint8_t bTransferRequest = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void Error_Handler(void);
 
-uint8_t DAC_Value = 0x23;
 /* Private functions ---------------------------------------------------------*/
 
+static void MX_IWDG_Init(void);
+static void Flush_Buffer(uint8_t* pBuffer, uint16_t BufferLength);
 /**
   * @brief  Main program.
   * @param  None
@@ -70,35 +82,64 @@ uint8_t DAC_Value = 0x23;
   */
 int main(void)
 {
-  /* STM32L0xx HAL library initialization:
-       - Configure the Flash prefetch, Flash preread and Buffer caches
-       - Systick timer is configured by default as source of time base, but user 
-             can eventually implement his proper time base source (a general purpose 
-             timer for example or other time source), keeping in mind that Time base 
-             duration should be kept 1ms since PPP_TIMEOUT_VALUEs are defined and 
-             handled in milliseconds basis.
-       - Low Level Initialization
-     */
   HAL_Init();
 
-	/* Configure the system clock to 2 MHz */
-  SystemClock_Config();
-	
-  /* Configure LED2 */
-  //BSP_LED_Init(LED2);
+  /* Configure the system clock to 24 MHz */
+  SystemClock_Config();	
   
+  I2C_Init();
   VCC_1v8_Init();
   LED_Driver_Init();
   
-  LED_Driver_SetValue(DAC_Value);
-  
-  SPI_Init();
+  SPI_Init();  
   uint8_t temp = SPI_ReadWrite_Byte(0x12);
   
+  MX_IWDG_Init();
+  
   /* Infinite loop */
-  while (1)
+  while(1)
   {
-  }
+    regAddress = 0;
+
+    //    /*##-2- Slave receive request from master ################################*/
+    while(HAL_I2C_Slave_Receive_IT(&I2cHandle, (uint8_t*)&bTransferRequest, 1)!= HAL_OK)
+    {
+    }
+    
+    while (HAL_I2C_GetState(&I2cHandle) != HAL_I2C_STATE_READY)
+    {
+                /* Refresh IWDG: reload counter */
+      if(HAL_IWDG_Refresh(&hiwdg) != HAL_OK)
+      {
+        /* Refresh Error */
+
+      }
+    }
+
+    /* If master request write operation #####################################*/
+    if (bTransferRequest == MASTER_REQ_WRITE)
+    {
+      /*##-3- Slave receive number of data to be read ########################*/
+      while(HAL_I2C_Slave_Receive_IT(&I2cHandle, (uint8_t*)&regAddress, 1)!= HAL_OK);
+      
+      while (HAL_I2C_GetState(&I2cHandle) != HAL_I2C_STATE_READY)
+      {
+      }
+
+      
+      /*##-4- Slave receives aRxBuffer from master ###########################*/
+      while(HAL_I2C_Slave_Receive_IT(&I2cHandle, (uint8_t*)aRxBuffer, 1)!= HAL_OK);
+
+      while (HAL_I2C_GetState(&I2cHandle) != HAL_I2C_STATE_READY)
+      {        
+      }
+      
+      LED_Driver_SetValue(aRxBuffer[0]); 
+    }
+    
+    /* Flush Rx buffers */
+    Flush_Buffer((uint8_t*)aRxBuffer,RXBUFFERSIZE); 
+  }  
 }
 
 /**
@@ -114,7 +155,7 @@ int main(void)
   *            Main regulator output voltage  = Scale3 mode
   * @retval None
   */
-void SystemClock_Config(void)
+void SystemClock_Config1(void)
 {
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
@@ -156,21 +197,93 @@ void SystemClock_Config(void)
   
 }
 
+void SystemClock_Config(void)
+{
+  RCC_ClkInitTypeDef RCC_ClkInitStruct ={0};
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  
+  /* Enable Power Control clock */
+  __HAL_RCC_PWR_CLK_ENABLE();
+  
+  /* The voltage scaling allows optimizing the power consumption when the device is 
+     clocked below the maximum system frequency, to update the voltage scaling value 
+     regarding system frequency refer to product datasheet.  */
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+  
+  /* Disable Power Control clock */
+  __HAL_RCC_PWR_CLK_DISABLE();
+  
+  /* Enable HSE Oscillator */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSI48;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue=16;
+  RCC_OscInitStruct.HSI48State      = RCC_HSI48_ON;
+  RCC_OscInitStruct.PLL.PLLSource   = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLState    = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLMUL      = RCC_PLL_MUL4;
+  RCC_OscInitStruct.PLL.PLLDIV      = RCC_PLL_DIV2;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct)!= HAL_OK)
+  {
+    /* Initialization Error */
+    while(1); 
+  }
+  
+  /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2 
+     clocks dividers */
+  RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;  
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;  
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1)!= HAL_OK)
+  {
+    /* Initialization Error */
+    while(1); 
+  }
+}
+
+static void MX_IWDG_Init(void)
+{
+  hiwdg.Instance = IWDG;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_64;
+  hiwdg.Init.Window = 0xfff;
+  hiwdg.Init.Reload = 0xfff;
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  {
+
+  }
+}
+
+/**
+  * @brief  Flushes the buffer
+  * @param  pBuffer: buffers to be flushed.
+  * @param  BufferLength: buffer's length
+  * @retval None
+  */
+static void Flush_Buffer(uint8_t* pBuffer, uint16_t BufferLength)
+{
+  while (BufferLength--)
+  {
+    *pBuffer = 0;
+
+    pBuffer++;
+  }
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.
   * @param  None
   * @retval None
   */
-static void Error_Handler(void)
-{
-  /* Error if LED2 is slowly blinking (1 sec. period) */
-  while(1)
-  {    
-    //BSP_LED_Toggle(LED2); 
-    HAL_Delay(1000);
-  } 
-}
+//static void Error_Handler(void)
+//{
+//  /* Error if LED2 is slowly blinking (1 sec. period) */
+//  while(1)
+//  {    
+//    //BSP_LED_Toggle(LED2); 
+//    HAL_Delay(1000);
+//  } 
+//}
 
 #ifdef  USE_FULL_ASSERT
 

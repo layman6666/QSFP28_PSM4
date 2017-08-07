@@ -54,6 +54,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 extern DAC_HandleTypeDef    DacHandle;
+extern I2C_HandleTypeDef    I2cHandle;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -156,6 +157,13 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
+}
+
+void I2Cx_IRQHandler(void)
+{
+  HAL_I2C_EV_IRQHandler(&I2cHandle);
+  HAL_I2C_ER_IRQHandler(&I2cHandle); 
+  I2cHandle.State=HAL_I2C_STATE_READY;
 }
 
 /******************************************************************************/

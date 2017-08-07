@@ -52,6 +52,11 @@
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 
+/* Definition for I2Cx's NVIC */
+#define I2Cx_IRQn                       I2C1_IRQn
+#define I2Cx_IRQHandler                 I2C1_IRQHandler
+#define HARDWARE_I2C
+
 #endif /* __MAIN_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
