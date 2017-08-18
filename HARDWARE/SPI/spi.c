@@ -39,7 +39,7 @@ void SPI_Init(void)
   HAL_GPIO_WritePin(SPI_NSS_GPIO_PORT, SPI_NSS_PIN, GPIO_PIN_SET);
 }
 
-uint8_t SPI_ReadWrite_Byte(uint8_t byte)
+uint8_t SPI_ReadWrite_Byte(uint8_t cmd_addr, uint16_t data)
 {  
   uint8_t temp=0;
   NSS_L;  
@@ -47,7 +47,7 @@ uint8_t SPI_ReadWrite_Byte(uint8_t byte)
   __NOP();             /*读取第一bit数据 等待数据稳定 根据实际时钟调整*/
   for(uint8_t i=0;i<8;i++)
   {    
-    if(byte&0x80) 
+    if(cmd_addr&0x80) 
     {
       MOSI_H;          /*若最高位为高，则输出高*/
     }
@@ -56,7 +56,30 @@ uint8_t SPI_ReadWrite_Byte(uint8_t byte)
       MOSI_L;          /*若最高位为低，则输出低*/    
     }    
     __NOP();
-    byte <<= 1;
+    cmd_addr <<= 1;
+    SCK_L;
+    temp <<= 1;        /*数据左移*/
+    if(MISO)
+    {
+      temp++;          /*若从从机接收到高电平，数据自加一*/
+    }
+    SCK_H;
+  }
+  
+  data <<= 6;
+  
+  for(uint8_t i=0;i<16;i++)
+  {    
+    if(data&0x8000) 
+    {
+      MOSI_H;          /*若最高位为高，则输出高*/
+    }
+    else
+    {
+      MOSI_L;          /*若最高位为低，则输出低*/    
+    }    
+    __NOP();
+    data <<= 1;
     SCK_L;
     temp <<= 1;        /*数据左移*/
     if(MISO)
@@ -67,4 +90,10 @@ uint8_t SPI_ReadWrite_Byte(uint8_t byte)
   }
   NSS_H;
   return temp;
+}
+
+void AD5317R_DAC_Disable(uint8_t channel)
+{
+  uint16_t data=0x0001<<((channel-1)*2);
+  SPI_ReadWrite_Byte(0x40, data);
 }

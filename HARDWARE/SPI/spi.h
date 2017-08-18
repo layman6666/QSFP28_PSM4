@@ -28,6 +28,7 @@
 #define NSS_L   HAL_GPIO_WritePin(SPI_NSS_GPIO_PORT, SPI_NSS_PIN, GPIO_PIN_RESET) 
 
 void SPI_Init(void);
-uint8_t SPI_ReadWrite_Byte(uint8_t byte);
+uint8_t SPI_ReadWrite_Byte(uint8_t cmd_addr, uint16_t data);
+void AD5317R_DAC_Disable(uint8_t channel);
 
 #endif
