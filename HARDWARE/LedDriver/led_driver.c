@@ -58,24 +58,22 @@ void LED_Driver_Init()
   }
 }
 
-void LED_Driver_SetValue(uint16_t regAddress, uint32_t value)
+void LED_Driver_SetValue(uint8_t channel, uint32_t value)
 {
-  uint32_t address = EEPROM_BIAS_START_ADDR+regAddress;
+  uint32_t address = EEPROM_BIAS_START_ADDR+channel;
   
   if(address > EEPROM_BIAS_END_ADDR)
   {
     return;
   }
   
+      /* Check the parameters */
+  assert_param(IS_BIAS_DATA_ADDRESS(Address));
+  
   HAL_FLASHEx_DATAEEPROM_Unlock();
   
-  if(regAddress==0x04)
-  {
-    if (HAL_FLASHEx_DATAEEPROM_Erase(address) != HAL_OK)
-    {
-      //Error_Handler();
-    }
-  
+  if(channel==0x04)
+  {  
     HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, address, value);
     HAL_FLASHEx_DATAEEPROM_Lock();
      
@@ -97,11 +95,6 @@ void LED_Driver_SetValue(uint16_t regAddress, uint32_t value)
   
     return;
   }
- 
-  if (HAL_FLASHEx_DATAEEPROM_Erase(EEPROM_BIAS_START_ADDR) != HAL_OK)
-  {
-    //Error_Handler();
-  }
 
   HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, address, value);
   HAL_FLASHEx_DATAEEPROM_Lock();
@@ -111,4 +104,14 @@ void LED_Driver_SetValue(uint16_t regAddress, uint32_t value)
     /* Setting value Error */
     //Error_Handler();
   } 
+}
+
+uint8_t LED_Driver_GetValue(uint8_t channel)
+{
+  uint32_t address = EEPROM_BIAS_START_ADDR+(channel-1);
+  
+    /* Check the parameters */
+  assert_param(IS_BIAS_DATA_ADDRESS(Address));
+  
+  return *(__IO uint8_t *)address;
 }

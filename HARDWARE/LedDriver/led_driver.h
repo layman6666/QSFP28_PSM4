@@ -30,10 +30,11 @@
  
 
 #define EEPROM_BIAS_START_ADDR   DATA_EEPROM_BASE             /* Start @ of user EEPROM area */
-#define EEPROM_BIAS_END_ADDR     (EEPROM_BIAS_START_ADDR + 4)   /* End @ of user EEPROM area */
-
+#define EEPROM_BIAS_END_ADDR     (EEPROM_BIAS_START_ADDR + 5)   /* End @ of user EEPROM area */
+#define IS_BIAS_DATA_ADDRESS(__ADDRESS__)          (((__ADDRESS__) >= EEPROM_BIAS_START_ADDR) && ((__ADDRESS__) <= EEPROM_BIAS_END_ADDR))
 
 void LED_Driver_Init(void);
-void LED_Driver_SetValue(uint16_t regAddress, uint32_t value);
+void LED_Driver_SetValue(uint8_t channel, uint32_t value);
+uint8_t LED_Driver_GetValue(uint8_t channel);
 
 #endif

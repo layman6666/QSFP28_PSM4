@@ -92,9 +92,8 @@ int main(void)
   LED_Driver_Init();
   
   SPI_Init();  
-  SPI_ReadWrite_Byte(0x3F, 0xFFFF);
-  SPI_ReadWrite_Byte(0x90, 0x0000);
-  uint8_t temp = SPI_ReadWrite_Byte(0x00, 0x0000);
+  AD5317R_DAC_Write(0x01, 0xFFFF);
+  uint16_t temp = AD5317R_DAC_Read(0x01);
   
   MX_IWDG_Init();
   
@@ -138,8 +137,7 @@ int main(void)
       
       if(regAddress==0x05)
       {
-        uint32_t address = EEPROM_BIAS_START_ADDR;
-        aTxBuffer[0] = *(__IO uint8_t *)address;
+        aTxBuffer[0]=LED_Driver_GetValue(1);
         while(HAL_I2C_Slave_Transmit_IT(&I2cHandle, (uint8_t*)aTxBuffer, 1)!= HAL_OK);
 
         while (HAL_I2C_GetState(&I2cHandle) != HAL_I2C_STATE_READY)
