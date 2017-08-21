@@ -39,9 +39,9 @@ void SPI_Init(void)
   HAL_GPIO_WritePin(SPI_NSS_GPIO_PORT, SPI_NSS_PIN, GPIO_PIN_SET);
 }
 
-uint8_t SPI_ReadWrite_Byte(uint8_t cmd_addr, uint16_t data)
+uint16_t SPI_ReadWrite_Byte(uint8_t cmd_addr, uint16_t data)
 {  
-  uint8_t temp=0;
+  uint16_t temp=0;
   NSS_L;  
   SCK_H;    
   __NOP();             /*读取第一bit数据 等待数据稳定 根据实际时钟调整*/
@@ -94,6 +94,37 @@ uint8_t SPI_ReadWrite_Byte(uint8_t cmd_addr, uint16_t data)
 
 void AD5317R_DAC_Disable(uint8_t channel)
 {
-  uint16_t data=0x0001<<((channel-1)*2);
+  uint8_t data = *(__IO uint8_t *)EEPROM_DAC_START_ADDR; 
+  data= data+ 1<<((channel-1)*2);
   SPI_ReadWrite_Byte(0x40, data);
+  
+  HAL_FLASHEx_DATAEEPROM_Unlock();
+  HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_DAC_START_ADDR, data);
+  HAL_FLASHEx_DATAEEPROM_Lock();
+}
+
+void AD5317R_DAC_Enable(uint8_t channel)
+{
+  uint8_t data = *(__IO uint8_t *)EEPROM_DAC_START_ADDR;  
+  data= data+ 0<<((channel-1)*2);
+  SPI_ReadWrite_Byte(0x40, data);
+  
+  HAL_FLASHEx_DATAEEPROM_Unlock();
+  HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_DAC_START_ADDR, data);
+  HAL_FLASHEx_DATAEEPROM_Lock();
+}
+
+void AD5317R_DAC_Write(uint8_t channel, uint16_t data)
+{
+  uint8_t cmd_addr = 0x30+(1<<((channel-1)*2));
+  SPI_ReadWrite_Byte(cmd_addr, data);
+}
+
+uint16_t AD5317R_DAC_Read(uint8_t channel)
+{
+  uint8_t cmd_addr = 0x90+(1<<((channel-1)*2));
+  SPI_ReadWrite_Byte(cmd_addr, 0x0000);
+  
+  uint16_t data = SPI_ReadWrite_Byte(0x00, 0x0000);
+  return data>>4;
 }

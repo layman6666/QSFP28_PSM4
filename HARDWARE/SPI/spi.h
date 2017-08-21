@@ -27,8 +27,15 @@
 #define NSS_H   HAL_GPIO_WritePin(SPI_NSS_GPIO_PORT, SPI_NSS_PIN, GPIO_PIN_SET)  
 #define NSS_L   HAL_GPIO_WritePin(SPI_NSS_GPIO_PORT, SPI_NSS_PIN, GPIO_PIN_RESET) 
 
-void SPI_Init(void);
-uint8_t SPI_ReadWrite_Byte(uint8_t cmd_addr, uint16_t data);
-void AD5317R_DAC_Disable(uint8_t channel);
 
+#define EEPROM_DAC_START_ADDR   DATA_EEPROM_BASE+6             /* Start @ of user EEPROM area */
+#define EEPROM_DAC_END_ADDR     (EEPROM_BIAS_START_ADDR + 7)   /* End @ of user EEPROM area */
+#define IS_DAC_DATA_ADDRESS(__ADDRESS__)          (((__ADDRESS__) >= EEPROM_DAC_START_ADDR) && ((__ADDRESS__) <= EEPROM_DAC_END_ADDR))
+
+void SPI_Init(void);
+uint16_t SPI_ReadWrite_Byte(uint8_t cmd_addr, uint16_t data);
+void AD5317R_DAC_Write(uint8_t channel, uint16_t data);
+uint16_t AD5317R_DAC_Read(uint8_t channel);
+void AD5317R_DAC_Disable(uint8_t channel);
+void AD5317R_DAC_Enable(uint8_t channel);
 #endif
