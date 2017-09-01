@@ -12,12 +12,14 @@
 #define SPI_MISO_GPIO_PORT              GPIOC
 #define SPI_NSS_PIN                     GPIO_PIN_6
 #define SPI_NSS_GPIO_PORT               GPIOC
+#define SPI_RESET_PIN                   GPIO_PIN_5
+#define SPI_RESET_GPIO_PORT             GPIOC
  
 #define SPI_SCK_GPIO_CLK_ENABLE()       __HAL_RCC_GPIOC_CLK_ENABLE()
 #define SPI_MISO_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOC_CLK_ENABLE()
 #define SPI_MOSI_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOC_CLK_ENABLE()
 #define SPI_NSS_GPIO_CLK_ENABLE()       __HAL_RCC_GPIOC_CLK_ENABLE()
-
+#define SPI_RESET_GPIO_CLK_ENABLE()     __HAL_RCC_GPIOC_CLK_ENABLE()
 
 #define MOSI_H  HAL_GPIO_WritePin(SPI_MOSI_GPIO_PORT, SPI_MOSI_PIN, GPIO_PIN_SET)  
 #define MOSI_L  HAL_GPIO_WritePin(SPI_MOSI_GPIO_PORT, SPI_MOSI_PIN, GPIO_PIN_RESET)  
@@ -29,13 +31,12 @@
 
 
 #define EEPROM_DAC_START_ADDR   DATA_EEPROM_BASE+6             /* Start @ of user EEPROM area */
-#define EEPROM_DAC_END_ADDR     (EEPROM_BIAS_START_ADDR + 7)   /* End @ of user EEPROM area */
+#define EEPROM_DAC_END_ADDR     (EEPROM_BIAS_START_ADDR + 16)   /* End @ of user EEPROM area */
 #define IS_DAC_DATA_ADDRESS(__ADDRESS__)          (((__ADDRESS__) >= EEPROM_DAC_START_ADDR) && ((__ADDRESS__) <= EEPROM_DAC_END_ADDR))
+#define IS_DAC_CH_ADDRESS(__ADDRESS__)          (((__ADDRESS__) >= 1) && ((__ADDRESS__) <= 4))
 
 void SPI_Init(void);
 uint16_t SPI_ReadWrite_Byte(uint8_t cmd_addr, uint16_t data);
-void AD5317R_DAC_Write(uint8_t channel, uint16_t data);
-uint16_t AD5317R_DAC_Read(uint8_t channel);
-void AD5317R_DAC_Disable(uint8_t channel);
-void AD5317R_DAC_Enable(uint8_t channel);
+void AD5317R_DAC_Write(uint8_t regAddress, uint8_t data);
+uint8_t AD5317R_DAC_Read(uint8_t regAddress);
 #endif
