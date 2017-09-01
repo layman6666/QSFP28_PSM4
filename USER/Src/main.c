@@ -44,19 +44,6 @@
 #include "vcc_1v8.h"
 #include "spi.h"
 
-    
-/** @addtogroup STM32L0xx_HAL_Examples
-  * @{
-  */
-
-/** @addtogroup DAC_SimpleConversion
-  * @{
-  */
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef I2cHandle;
 IWDG_HandleTypeDef hiwdg;
 
@@ -89,11 +76,7 @@ int main(void)
   
   I2C_Init();
   VCC_1v8_Init();
-  LED_Driver_Init();
-  
-  SPI_Init();  
-  AD5317R_DAC_Write(0x01, 0xFFFF);
-  uint16_t temp = AD5317R_DAC_Read(0x01);
+  LED_Driver_Init(); 
   
   MX_IWDG_Init();
   
@@ -103,17 +86,13 @@ int main(void)
     regAddress = 0;
 
     //    /*##-2- Slave receive request from master ################################*/
-    while(HAL_I2C_Slave_Receive_IT(&I2cHandle, (uint8_t*)&bTransferRequest, 1)!= HAL_OK)
-    {
-    }
+    while(HAL_I2C_Slave_Receive_IT(&I2cHandle, (uint8_t*)&bTransferRequest, 1)!= HAL_OK){ }
     
     while (HAL_I2C_GetState(&I2cHandle) != HAL_I2C_STATE_READY)
-    {
-                /* Refresh IWDG: reload counter */
+    {                /* Refresh IWDG: reload counter */
       if(HAL_IWDG_Refresh(&hiwdg) != HAL_OK)
       {
         /* Refresh Error */
-
       }
     }
 
@@ -121,32 +100,36 @@ int main(void)
     if (bTransferRequest == MASTER_REQ_WRITE)
     {
       /*##-3- Slave receive number of data to be read ########################*/
-      while(HAL_I2C_Slave_Receive_IT(&I2cHandle, (uint8_t*)&regAddress, 1)!= HAL_OK);
-      
-      while (HAL_I2C_GetState(&I2cHandle) != HAL_I2C_STATE_READY)
-      {
-      }
-
+      while(HAL_I2C_Slave_Receive_IT(&I2cHandle, (uint8_t*)&regAddress, 1)!= HAL_OK);      
+      while (HAL_I2C_GetState(&I2cHandle) != HAL_I2C_STATE_READY){ };
       
       /*##-4- Slave receives aRxBuffer from master ###########################*/
       while(HAL_I2C_Slave_Receive_IT(&I2cHandle, (uint8_t*)aRxBuffer, 1)!= HAL_OK);
-
-      while (HAL_I2C_GetState(&I2cHandle) != HAL_I2C_STATE_READY)
-      {        
-      }          
+      while (HAL_I2C_GetState(&I2cHandle) != HAL_I2C_STATE_READY){ };
+            
+      if(regAddress<=0x04)
+      {
+        LED_Driver_SetValue(regAddress, aRxBuffer[0]);
+      }
       
       if(regAddress==0x05)
       {
         aTxBuffer[0]=LED_Driver_GetValue(1);
         while(HAL_I2C_Slave_Transmit_IT(&I2cHandle, (uint8_t*)aTxBuffer, 1)!= HAL_OK);
-
-        while (HAL_I2C_GetState(&I2cHandle) != HAL_I2C_STATE_READY)
-        {        
-        }  
+        while (HAL_I2C_GetState(&I2cHandle) != HAL_I2C_STATE_READY){ } 
       }
       
-      LED_Driver_SetValue(regAddress, aRxBuffer[0]);
-
+      if((regAddress>=0x06)&&(regAddress<=0x0D))
+      {
+        AD5317R_DAC_Write(regAddress, aRxBuffer[0]);
+      }      
+      
+      if((regAddress>=0x0E)&&(regAddress<=0x15))
+      {
+        aTxBuffer[0] = AD5317R_DAC_Read(regAddress);    
+        while(HAL_I2C_Slave_Transmit_IT(&I2cHandle, (uint8_t*)aTxBuffer, 1)!= HAL_OK);
+        while (HAL_I2C_GetState(&I2cHandle) != HAL_I2C_STATE_READY){ } 
+      }      
     }
     
     /* Flush Rx buffers */
@@ -318,13 +301,3 @@ void assert_failed(uint8_t *file, uint32_t line)
 }
 
 #endif
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
